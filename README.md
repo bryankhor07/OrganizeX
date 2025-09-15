@@ -2,6 +2,8 @@
 
 OrganizeX is a modern task management and collaboration tool that helps you stay productive by organizing projects into boards, columns, and tasks.
 
+https://organize-x.vercel.app/
+
 ---
 
 ## 📑 Table of Contents
