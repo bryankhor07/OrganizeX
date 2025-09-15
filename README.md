@@ -1,36 +1,51 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# OrganizeX 📋 
 
-## Getting Started
+OrganizeX is a modern task management and collaboration tool that helps you stay productive by organizing projects into boards, columns, and tasks.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## 📑 Table of Contents
+- [Introduction](#introduction)
+- [Tech Stack](#tech-stack)
+- [Features](#features)
+- [Screenshots](#screenshots)
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🚀 Introduction
+OrganizeX is designed to help teams and individuals manage projects effortlessly.  
+With a simple board-based workflow, customizable columns, and dynamic tasks, it brings clarity to your projects and keeps everyone on the same page.  
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Built on a modern, production-ready stack, OrganizeX combines **Supabase** for real-time database updates, **Clerk** for authentication and billing, and **Next.js** for a fast, scalable frontend experience.
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## 🛠️ Tech Stack
+- **Next.js (App Router)** – React framework with file‑based routing & server components
+- **Supabase** – Hosted Postgres, real‑time subscriptions & Storage
+- **Clerk** – Authentication & subscription billing integration
+- **@dnd-kit** - Flexible drag‑and‑drop primitives
+- **TailwindCSS** – Utility-first styling & responsive design  
+- **TypeScript** – Strongly typed codebase for reliability  
+- **Vercel** – Hosting & serverless deployment platform
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## ✨ Features
+- 📋 **Boards & Columns** - Create multiple boards and define custom columns.
+- ➕ **Dynamic Tasks** - Add, edit and delete tasks with title, description, assignee, priority & due date.
+- 🔄 **Drag & Drop** - Reorder tasks and move them between columns with smooth animations.
+- 📡 **Real‑Time Updates** - Changes sync instantly across clients via Supabase subscriptions. 
+- 🔍 **Filtering** - Filter tasks by priority, due date, and search within a board.
+- 🔐 **Auth & Billing** - Sign up / log in with Clerk and upgrade your plan to create unlimited boards.
+- 🚀 **One‑Click Deployment** - Deploy the app on Vercel with environment variables for Supabase & Clerk.
+- 📱 **Responsive UI** — Mobile-first design with Tailwind  
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 📸 Screenshots
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+<img width="1885" height="765" alt="image" src="https://github.com/user-attachments/assets/138167c8-8c26-4c59-920f-53a92b53d43e" />
+<img width="1727" height="843" alt="image" src="https://github.com/user-attachments/assets/bcd6e1f7-d908-4496-8027-234bd19a96db" />
+<img width="1735" height="544" alt="image" src="https://github.com/user-attachments/assets/2728b841-27fa-4b56-a1d7-72aa95ded485" />
+
