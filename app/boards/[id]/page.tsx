@@ -2,7 +2,7 @@
 
 import Navbar from "@/components/navbar";
 import { useBoard } from "@/lib/hooks/useBoards";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -16,7 +16,14 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DialogTrigger } from "@radix-ui/react-dialog";
-import { Calendar, MoreHorizontal, Plus, User } from "lucide-react";
+import {
+  Calendar,
+  MoreHorizontal,
+  Plus,
+  User,
+  Trash2,
+  Minus,
+} from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
@@ -191,7 +198,13 @@ function DroppableColumn({
   );
 }
 
-function SortableTask({ task }: { task: Task }) {
+function SortableTask({
+  task,
+  onDeleteTask,
+}: {
+  task: Task;
+  onDeleteTask: (taskId: string) => void;
+}) {
   const {
     attributes,
     listeners,
@@ -229,6 +242,15 @@ function SortableTask({ task }: { task: Task }) {
               <h4 className="font-medium text-gray-900 text-sm leading-tight flex-1 min-w-0 pr-2 group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:to-purple-600 group-hover:bg-clip-text group-hover:text-transparent transition-all duration-300">
                 {task.title}
               </h4>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDeleteTask(task.id);
+                }}
+                className="opacity-0 group-hover:opacity-100 p-1 rounded-lg hover:bg-red-100 transition-all duration-300"
+              >
+                <Trash2 className="h-3 w-3 text-red-500" />
+              </button>
             </div>
 
             {/* Task Description */}
@@ -324,15 +346,19 @@ function TaskOverlay({ task }: { task: Task }) {
 
 export default function BoardPage() {
   const { id } = useParams<{ id: string }>();
+  const router = useRouter();
   const {
     board,
     createColumn,
     updateBoard,
+    deleteBoard,
     columns,
     createRealTask,
+    deleteTask,
     setColumns,
     moveTask,
     updateColumn,
+    deleteColumn,
   } = useBoard(id);
 
   const [isEditingTitle, setIsEditingTitle] = useState(false);
@@ -342,6 +368,9 @@ export default function BoardPage() {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isCreatingColumn, setIsCreatingColumn] = useState(false);
   const [isEditingColumn, setIsEditingColumn] = useState(false);
+  const [isDeleteBoardOpen, setIsDeleteBoardOpen] = useState(false);
+  const [isDeleteTaskOpen, setIsDeleteTaskOpen] = useState(false);
+  const [taskToDelete, setTaskToDelete] = useState<string | null>(null);
 
   const [newColumnTitle, setNewColumnTitle] = useState("");
   const [editingColumnTitle, setEditingColumnTitle] = useState("");
@@ -381,6 +410,30 @@ export default function BoardPage() {
       assignee: [] as string[],
       dueDate: null as string | null,
     });
+  }
+
+  async function handleDeleteBoard() {
+    if (!board) return;
+
+    try {
+      await deleteBoard(board.id);
+      // Redirect to dashboard after successful deletion
+      router.push("/dashboard");
+    } catch (err) {
+      // Error handling is already done in the hook
+    }
+  }
+
+  async function handleDeleteTask() {
+    if (!taskToDelete) return;
+
+    try {
+      await deleteTask(taskToDelete);
+      setIsDeleteTaskOpen(false);
+      setTaskToDelete(null);
+    } catch (err) {
+      // Error handling is already done in the hook
+    }
   }
 
   async function handleUpdateBoard(e: React.FormEvent) {
@@ -773,91 +826,100 @@ export default function BoardPage() {
             </div>
 
             {/* Add task dialog */}
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
-                  <Plus />
-                  Add Task
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="w-[95vw] max-w-[425px] mx-auto bg-white/95 backdrop-blur-sm border border-gray-100/50">
-                <DialogHeader>
-                  <DialogTitle className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                    Create New Task
-                  </DialogTitle>
-                  <p className="text-sm text-gray-600">
-                    Add a task to the board
-                  </p>
-                </DialogHeader>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-x-4 sm:space-y-0 space-y-4">
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+                    <Plus />
+                    Add Task
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="w-[95vw] max-w-[425px] mx-auto bg-white/95 backdrop-blur-sm border border-gray-100/50">
+                  <DialogHeader>
+                    <DialogTitle className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                      Create New Task
+                    </DialogTitle>
+                    <p className="text-sm text-gray-600">
+                      Add a task to the board
+                    </p>
+                  </DialogHeader>
 
-                <form className="space-y-4" onSubmit={handleCreateTask}>
-                  <div className="space-y-2">
-                    <Label>Title *</Label>
-                    <Input
-                      id="title"
-                      name="title"
-                      placeholder="Enter task title"
-                      className="bg-white/70 backdrop-blur-sm border border-gray-100/50 focus:border-blue-300 focus:ring-2 focus:ring-blue-200/50"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Description</Label>
-                    <Textarea
-                      id="description"
-                      name="description"
-                      placeholder="Enter task description"
-                      rows={3}
-                      className="bg-white/70 backdrop-blur-sm border border-gray-100/50 focus:border-blue-300 focus:ring-2 focus:ring-blue-200/50"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Assignee</Label>
-                    <Input
-                      id="assignee"
-                      name="assignee"
-                      placeholder="Who should do this?"
-                      className="bg-white/70 backdrop-blur-sm border border-gray-100/50 focus:border-blue-300 focus:ring-2 focus:ring-blue-200/50"
-                    />
-                  </div>
+                  <form className="space-y-4" onSubmit={handleCreateTask}>
+                    <div className="space-y-2">
+                      <Label>Title *</Label>
+                      <Input
+                        id="title"
+                        name="title"
+                        placeholder="Enter task title"
+                        className="bg-white/70 backdrop-blur-sm border border-gray-100/50 focus:border-blue-300 focus:ring-2 focus:ring-blue-200/50"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Description</Label>
+                      <Textarea
+                        id="description"
+                        name="description"
+                        placeholder="Enter task description"
+                        rows={3}
+                        className="bg-white/70 backdrop-blur-sm border border-gray-100/50 focus:border-blue-300 focus:ring-2 focus:ring-blue-200/50"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Assignee</Label>
+                      <Input
+                        id="assignee"
+                        name="assignee"
+                        placeholder="Who should do this?"
+                        className="bg-white/70 backdrop-blur-sm border border-gray-100/50 focus:border-blue-300 focus:ring-2 focus:ring-blue-200/50"
+                      />
+                    </div>
 
-                  <div className="space-y-2">
-                    <Label>Priority</Label>
-                    <Select name="priority" defaultValue="medium">
-                      <SelectTrigger className="bg-white/70 backdrop-blur-sm border border-gray-100/50 focus:border-blue-300 focus:ring-2 focus:ring-blue-200/50">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="bg-white/95 backdrop-blur-sm border border-gray-100/50">
-                        {["low", "medium", "high"].map((priority, key) => (
-                          <SelectItem key={key} value={priority}>
-                            {priority.charAt(0).toUpperCase() +
-                              priority.slice(1)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                    <div className="space-y-2">
+                      <Label>Priority</Label>
+                      <Select name="priority" defaultValue="medium">
+                        <SelectTrigger className="bg-white/70 backdrop-blur-sm border border-gray-100/50 focus:border-blue-300 focus:ring-2 focus:ring-blue-200/50">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-white/95 backdrop-blur-sm border border-gray-100/50">
+                          {["low", "medium", "high"].map((priority, key) => (
+                            <SelectItem key={key} value={priority}>
+                              {priority.charAt(0).toUpperCase() +
+                                priority.slice(1)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                  <div className="space-y-2">
-                    <Label>Due Date</Label>
-                    <Input
-                      type="date"
-                      id="dueDate"
-                      name="dueDate"
-                      className="bg-white/70 backdrop-blur-sm border border-gray-100/50 focus:border-blue-300 focus:ring-2 focus:ring-blue-200/50"
-                    />
-                  </div>
+                    <div className="space-y-2">
+                      <Label>Due Date</Label>
+                      <Input
+                        type="date"
+                        id="dueDate"
+                        name="dueDate"
+                        className="bg-white/70 backdrop-blur-sm border border-gray-100/50 focus:border-blue-300 focus:ring-2 focus:ring-blue-200/50"
+                      />
+                    </div>
 
-                  <div className="flex justify-end space-x-2 pt-4">
-                    <Button
-                      type="submit"
-                      className="bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-                    >
-                      Create Task
-                    </Button>
-                  </div>
-                </form>
-              </DialogContent>
-            </Dialog>
+                    <div className="flex justify-end space-x-2 pt-4">
+                      <Button
+                        type="submit"
+                        className="bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                      >
+                        Create Task
+                      </Button>
+                    </div>
+                  </form>
+                </DialogContent>
+              </Dialog>
+              <Button
+                className="w-full sm:w-auto bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                onClick={() => setIsDeleteBoardOpen(true)}
+              >
+                <Minus />
+                Delete Board
+              </Button>
+            </div>
           </div>
 
           {/* Board Columns */}
@@ -889,7 +951,14 @@ export default function BoardPage() {
                   >
                     <div className="space-y-3">
                       {column.tasks.map((task, key) => (
-                        <SortableTask task={task} key={key} />
+                        <SortableTask
+                          task={task}
+                          key={key}
+                          onDeleteTask={(taskId) => {
+                            setTaskToDelete(taskId);
+                            setIsDeleteTaskOpen(true);
+                          }}
+                        />
                       ))}
                     </div>
                   </SortableContext>
@@ -1000,6 +1069,69 @@ export default function BoardPage() {
               </Button>
             </div>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Board Dialog */}
+      <Dialog open={isDeleteBoardOpen} onOpenChange={setIsDeleteBoardOpen}>
+        <DialogContent className="w-[95vw] max-w-[425px] mx-auto bg-white/95 backdrop-blur-sm border border-gray-100/50">
+          <DialogHeader>
+            <DialogTitle className="text-red-600">Delete Board</DialogTitle>
+            <p className="text-sm text-gray-600">
+              Are you sure you want to delete this board? This action cannot be
+              undone and will permanently delete all columns and tasks.
+            </p>
+          </DialogHeader>
+          <div className="space-x-2 flex justify-end pt-4">
+            <Button
+              type="button"
+              onClick={() => setIsDeleteBoardOpen(false)}
+              variant="outline"
+              className="bg-white/70 backdrop-blur-sm border border-gray-100/50"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleDeleteBoard}
+              className="bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete Board
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Task Dialog */}
+      <Dialog open={isDeleteTaskOpen} onOpenChange={setIsDeleteTaskOpen}>
+        <DialogContent className="w-[95vw] max-w-[425px] mx-auto bg-white/95 backdrop-blur-sm border border-gray-100/50">
+          <DialogHeader>
+            <DialogTitle className="text-red-600">Delete Task</DialogTitle>
+            <p className="text-sm text-gray-600">
+              Are you sure you want to delete this task? This action cannot be
+              undone.
+            </p>
+          </DialogHeader>
+          <div className="space-x-2 flex justify-end pt-4">
+            <Button
+              type="button"
+              onClick={() => {
+                setIsDeleteTaskOpen(false);
+                setTaskToDelete(null);
+              }}
+              variant="outline"
+              className="bg-white/70 backdrop-blur-sm border border-gray-100/50"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleDeleteTask}
+              className="bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete Task
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </>

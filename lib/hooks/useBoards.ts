@@ -60,7 +60,19 @@ export function useBoards() {
     }
   }
 
-  return { boards, loading, error, createBoard };
+  async function deleteBoard(boardId: string) {
+    if (!user) throw new Error("User not authenticated");
+
+    try {
+      await boardService.deleteBoard(supabase!, boardId);
+      setBoards((prev) => prev.filter((board) => board.id !== boardId));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to delete board.");
+      throw err; // Re-throw to let the UI handle the error
+    }
+  }
+
+  return { boards, loading, error, createBoard, deleteBoard };
 }
 
 export function useBoard(boardId: string) {
@@ -113,6 +125,20 @@ export function useBoard(boardId: string) {
     }
   }
 
+  async function deleteBoard(boardId: string) {
+    if (!user) throw new Error("User not authenticated");
+
+    try {
+      await boardService.deleteBoard(supabase!, boardId);
+      // Clear local state since board is deleted
+      setBoard(null);
+      setColumns([]);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to delete board.");
+      throw err; // Re-throw to let the UI handle the error
+    }
+  }
+
   async function createRealTask(
     columnId: string,
     taskData: {
@@ -146,6 +172,22 @@ export function useBoard(boardId: string) {
       setError(
         err instanceof Error ? err.message : "Failed to create the task."
       );
+    }
+  }
+
+  async function deleteTask(taskId: string) {
+    try {
+      await taskService.deleteTask(supabase!, taskId);
+
+      setColumns((prev) =>
+        prev.map((col) => ({
+          ...col,
+          tasks: col.tasks.filter((task) => task.id !== taskId),
+        }))
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to delete task.");
+      throw err; // Re-throw to let the UI handle the error
     }
   }
 
@@ -224,16 +266,30 @@ export function useBoard(boardId: string) {
     }
   }
 
+  async function deleteColumn(columnId: string) {
+    try {
+      await columnService.deleteColumn(supabase!, columnId);
+
+      setColumns((prev) => prev.filter((col) => col.id !== columnId));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to delete column.");
+      throw err; // Re-throw to let the UI handle the error
+    }
+  }
+
   return {
     board,
     columns,
     loading,
     error,
     updateBoard,
+    deleteBoard,
     createRealTask,
+    deleteTask,
     setColumns,
     moveTask,
     createColumn,
     updateColumn,
+    deleteColumn,
   };
 }
